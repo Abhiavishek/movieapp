@@ -98,8 +98,10 @@
 
 .genre-selector{
   padding: 3rem;
+  cursor: pointer;
 }
 
 .favourites-table{
   padding: 3rem;
+  cursor: pointer;
 }

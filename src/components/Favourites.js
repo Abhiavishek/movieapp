@@ -1,246 +1,246 @@
-import React, { Component } from "react";
-
+import React, { useState, useEffect } from "react";
 import { movies } from "../moviesData";
 
-export class Favourites extends Component {
-  constructor() {
-    super();
+const Favourites = () => {
+  const [genres, setGenres] = useState([]);
+  const [currgenre, setCurrgenre] = useState("All genres");
+  const [moviesData, setMoviesData] = useState([]);
+  const [currText, setCurrText] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
-    this.state = {
-      genres: [],
-      currgenre : 'All genres',
-      movies:[],
-      currText: '',
-    };
-    
-  }
-  componentDidMount(){
-    let genreids = {
-      28: "Action",
-      12: "Adventure",
-      16: "Animation",
-      35: "Comedy",
-      80: "Crime",
-      99: "Documentary",
-      18: "Drama",
-      10751: "Family",
-      14: "Fantasy",
-      36: "History",
-      27: "Horror",
-      10402: "Music",
-      9648: "Mystery",
-      10749: "Romance",
-      878: "Sci-Fi",
-      10770: "TV",
-      53: "Thriller",
-      10752: "War",
-      37: "Western",
-    };
-    let data = JSON.parse(localStorage.getItem("movies-app") || "[]") 
-   // let tempArr = []
+  let genreids = {
+    28: "Action",
+    12: "Adventure",
+    16: "Animation",
+    35: "Comedy",
+    80: "Crime",
+    99: "Documentary",
+    18: "Drama",
+    10751: "Family",
+    14: "Fantasy",
+    36: "History",
+    27: "Horror",
+    10402: "Music",
+    9648: "Mystery",
+    10749: "Romance",
+    878: "Sci-Fi",
+    10770: "TV",
+    53: "Thriller",
+    10752: "War",
+    37: "Western",
+  };
+
+  useEffect(() => {
+    let data = JSON.parse(localStorage.getItem("movies-app") || "[]");
     let tempArr = [];
 
-    data.map((movieObj) => {
+    data.forEach((movieObj) => {
       if (!tempArr.includes(genreids[movieObj.genre_ids[0]])) {
         tempArr.push(genreids[movieObj.genre_ids[0]]);
       }
     });
 
-
     tempArr.unshift("All genres");
 
-    this.setState({
-      movies: [...data],
-      genres: [...tempArr],
-    })
+    setMoviesData([...data]);
+    setGenres([...tempArr]);
+  }, []);
 
-  }
-  handleGenreChange =(genre)=>{
-    this.setState({
-      currgenre : genre
-    })
-  }
+  const handleGenreChange = (genre) => {
+    setCurrgenre(genre);
+    setCurrentPage(1); // Reset current page when genre changes
+  };
 
-  sortPopularityDesc=()=>{
-    let temp = this.state.movies
-    temp.sort(function(objA , objB){
-      return objB.popularity-objA.popularity
-    })
-    this.setState({
-      movies : [...temp]
-    })
-  }
+  const sortPopularityDesc = () => {
+    let temp = [...moviesData];
+    temp.sort((objA, objB) => objB.popularity - objA.popularity);
+    setMoviesData([...temp]);
+  };
 
-  sortPopularityAsc=()=>{
-    let temp = this.state.movies
-    temp.sort(function(objA , objB){
-      return objA.popularity-objB.popularity
-    })
-    this.setState({
-      movies : [...temp]
-    })
-  }
+  const sortPopularityAsc = () => {
+    let temp = [...moviesData];
+    temp.sort((objA, objB) => objA.popularity - objB.popularity);
+    setMoviesData([...temp]);
+  };
 
-  sortRatingAsc=()=>{
-    let temp = this.state.movies
-    temp.sort(function(objA , objB){
-      return objA.vote_average-objB.vote_average
-    })
-    this.setState({
-      movies : [...temp]
-    })
-  }
+  const sortRatingAsc = () => {
+    let temp = [...moviesData];
+    temp.sort((objA, objB) => objA.vote_average - objB.vote_average);
+    setMoviesData([...temp]);
+  };
 
-  sortRatingDesc=()=>{
-    let temp = this.state.movies
-    temp.sort(function(objA , objB){
-      return objB.vote_average-objA.vote_average
-    })
-    this.setState({
-      movies : [...temp]
-    })
-  }
+  const sortRatingDesc = () => {
+    let temp = [...moviesData];
+    temp.sort((objA, objB) => objB.vote_average - objA.vote_average);
+    setMoviesData([...temp]);
+  };
 
-  render() {
-    const moviesArr = movies.results;
+  const handleDelete = (movieId) => {
+    const updatedMovies = moviesData.filter((movie) => movie.id !== movieId);
+    setMoviesData([...updatedMovies]);
+    // Update localStorage if needed
+    localStorage.setItem("movies-app", JSON.stringify(updatedMovies));
+  };
 
-    let genreids = {
-      28: "Action",
-      12: "Adventure",
-      16: "Animation",
-      35: "Comedy",
-      80: "Crime",
-      99: "Documentary",
-      18: "Drama",
-      10751: "Family",
-      14: "Fantasy",
-      36: "History",
-      27: "Horror",
-      10402: "Music",
-      9648: "Mystery",
-      10749: "Romance",
-      878: "Sci-Fi",
-      10770: "TV",
-      53: "Thriller",
-      10752: "War",
-      37: "Western",
-    };
+  const filterArr =
+    currText
+      ? moviesData.filter((movieObj) =>
+          movieObj.original_title
+            .toLowerCase()
+            .includes(currText.toLowerCase().trim())
+        )
+      : currgenre !== "All genres"
+      ? moviesData.filter(
+          (movieObj) => genreids[movieObj.genre_ids[0]] === currgenre
+        )
+      : moviesData;
 
-    let filterArr = [] 
+  const totalPages = Math.ceil(filterArr.length / 4);
+  const startIndex = (currentPage - 1) * 4;
+  const endIndex = startIndex + 4;
+  const moviesToDisplay = filterArr.slice(startIndex, endIndex);
 
-    if(this.state.currText ===''){
-      filterArr = this.state.movies
-    }
-    else{
-      filterArr = this.state.movies.filter((movieObj)=>{
-        let title = movieObj.original_title.toLowerCase()
-        return title.includes(this.state.currText.toLowerCase().trim())
-      })
-    }
-
-    if(this.state.currgenre !== 'All genres'){
-      //filterArr = this.state.movies
-      filterArr = this.state.movies.filter((movieObj)=> genreids[movieObj.genre_ids[0]] == this.state.currgenre)
-
-    }
-    
-
-    
-    return (
-      <div className="main">
-        <div className="row">
-          <div className="col-3">
-            <ul class="list-group genre-selector">
-              {this.state.genres.map((genre) => (
-                this.state.currgenre == genre ?
-                  <li style={{background:'#3f51b5' , color:'white' , fontWeight:'bold'}} class="list-group-item">{genre}</li> :
-                   <li style={{color:'#3f51b5'}} class="list-group-item" onClick={()=>this.handleGenreChange(genre)}>{genre}</li>
-
-              ))}
-            </ul>
+  return (
+    <div className="main">
+      <div className="row">
+        <div className="col-3">
+          <ul className="list-group genre-selector">
+            {genres.map((genre) => (
+              <li
+                key={genre}
+                className={`list-group-item ${
+                  currgenre === genre ? "selected-genre" : ""
+                }`}
+                onClick={() => handleGenreChange(genre)}
+              >
+                {genre}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="col-9 favourites-table">
+          <div className="row">
+            <input
+              placeholder="Search"
+              type="text"
+              className="input-group-text col"
+              value={currText}
+              onChange={(e) => setCurrText(e.target.value)}
+            />
+            <input type="number" className="input-group-text col" />
           </div>
-          <div className="col-9 favourites-table">
-            <div className="row">
-              <input
-                placeholder="Search"
-                type="text"
-                className="input-group-text col"
-                value={this.state.currText} onChange={(e)=> this.setState({currText : e.target.value})}
 
-              />
-              <input type="number" className="input-group-text col"
-              />
-            </div>
-
-            <div className="row">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th></th>
-                    <th scope="col">Title</th>
-                    <th scope="col">Genre</th>
-                    <th scope="col"><i class="fa-solid fa-sort-up" onClick={this.sortPopularityDesc}></i>Popularity<i class="fa-solid fa-sort-down" onClick={this.sortPopularityAsc}></i></th>
-                    <th scope="col"><i class="fa-solid fa-sort-up" onClick={this.sortRatingDesc}></i>Ratings<i class="fa-solid fa-sort-down" onClick={this.sortRatingAsc}></i></th>
-                    <th></th>
+          <div className="row">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th scope="col">Title</th>
+                  <th scope="col">Genre</th>
+                  <th scope="col">
+                    <i
+                      className="fa-solid fa-sort-up"
+                      onClick={sortPopularityDesc}
+                    ></i>
+                    Popularity
+                    <i
+                      className="fa-solid fa-sort-down"
+                      onClick={sortPopularityAsc}
+                    ></i>
+                  </th>
+                  <th scope="col">
+                    <i
+                      className="fa-solid fa-sort-up"
+                      onClick={sortRatingDesc}
+                    ></i>
+                    Ratings
+                    <i
+                      className="fa-solid fa-sort-down"
+                      onClick={sortRatingAsc}
+                    ></i>
+                  </th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {moviesToDisplay.map((movieElem) => (
+                  <tr key={movieElem.title}>
+                    <td>
+                      <img
+                        style={{ width: "6rem" }}
+                        src={`https://image.tmdb.org/t/p/original${movieElem.backdrop_path}`}
+                        alt={movieElem.title}
+                      />
+                    </td>
+                    <td>{movieElem.title}</td>
+                    <td>{genreids[movieElem.genre_ids[0]]}</td>
+                    <td>{movieElem.popularity}</td>
+                    <td>{movieElem.vote_average}</td>
+                    <td>
+                      <button
+                        type="button"
+                        className="btn btn-danger"
+                        onClick={() => handleDelete(movieElem.id)}
+                      >
+                        Delete
+                      </button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {filterArr.map((movieElem) => (
-                    <tr>
-                      <tr>
-                        <img
-                          style={{ width: "6rem" }}
-                          src={`https://image.tmdb.org/t/p/original${movieElem.backdrop_path}`}
-                        />
-                      </tr>
-                      <th scope="row">{movieElem.title}</th>
-                      <td>{genreids[movieElem.genre_ids[0]]}</td>
-                      <td>{movieElem.popularity}</td>
-                      <td>{movieElem.vote_average}</td>
-                      <td>
-                        <button type="button" class="btn btn-danger">
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <nav aria-label="Page navigation example">
-              <ul class="pagination">
-                <li class="page-item">
-                  <a class="page-link" href="#">
-                    Previous
-                  </a>
-                </li>
-                <li class="page-item">
-                  <a class="page-link" href="#">
-                    1
-                  </a>
-                </li>
-                <li class="page-item">
-                  <a class="page-link" href="#">
-                    2
-                  </a>
-                </li>
-                <li class="page-item">
-                  <a class="page-link" href="#">
-                    3
-                  </a>
-                </li>
-                <li class="page-item">
-                  <a class="page-link" href="#">
-                    Next
-                  </a>
-                </li>
-              </ul>
-            </nav>
+                ))}
+              </tbody>
+            </table>
           </div>
+          <nav aria-label="Page navigation example">
+            <ul className="pagination">
+              <li
+                className={`page-item ${
+                  currentPage === 1 ? "disabled" : ""
+                }`}
+              >
+                <a
+                  className="page-link"
+                  onClick={() =>
+                    setCurrentPage((prevPage) => prevPage - 1)
+                  }
+                >
+                  Previous
+                </a>
+              </li>
+              {Array.from({ length: totalPages }, (_, index) => (
+                <li
+                  key={index + 1}
+                  className={`page-item ${
+                    currentPage === index + 1 ? "active" : ""
+                  }`}
+                >
+                  <a
+                    className="page-link"
+                    onClick={() => setCurrentPage(index + 1)}
+                  >
+                    {index + 1}
+                  </a>
+                </li>
+              ))}
+              <li
+                className={`page-item ${
+                  currentPage === totalPages ? "disabled" : ""
+                }`}
+              >
+                <a
+                  className="page-link"
+                  onClick={() =>
+                    setCurrentPage((prevPage) => prevPage + 1)
+                  }
+                >
+                  Next
+                </a>
+              </li>
+            </ul>
+          </nav>
         </div>
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
 export default Favourites;
